@@ -41,40 +41,76 @@ function addWorkEntry(button) {
   const entryDiv = document.createElement("div");
   entryDiv.classList.add("work-entry");
   entryDiv.innerHTML = `
-    <div class="form-group">
-      <label for="work_name">Company Name:</label>
-      <input type="text" name="work_name[]" class="form-control"><br>
-    </div>
-    <div class="form-group">
-      <label for="work_position">Position:</label>
-      <input type="text" name="work_position[]" class="form-control"><br>
-    </div>
-    <div class="form-group">
-      <label for="work_startDate">Start Date:</label>
-      <input type="date" name="work_startDate[]" class="form-control"><br>
-    </div>
-    <div class="form-group">
-      <label for="work_endDate">End Date:</label>
-      <input type="date" name="work_endDate[]" class="form-control"><br>
-    </div>
-    <div class="form-group">
-      <label for="work_summary">Summary:</label>
-      <textarea name="work_summary[]" class="form-control"></textarea><br>
-    </div>
-    <h3>Highlights</h3>
-    <div class="form-group">
-      <ul class="highlights-list" data-field="work_highlights">
-        <li>
-          <input type="text" name="work_highlights[][0]" class="form-control">
-          <button type="button" onclick="removeHighlight(this)" class="remove-highlight">Remove</button>
-        </li>
-      </ul>
-    </div>
-    <button type="button" onclick="addHighlight(this)" class="highlights">Add Highlight</button>
-    <button type="button" onclick="removeEntry(this)" class="removes">Remove</button>
-    <div>
-      <button type="button" onclick="addWorkEntry(this)" class="add-btn">Add Work Experience</button>
-    </div>
+   <div class="form-group">
+              <label for="work_name">Company:</label>
+              <input
+                type="text"
+                id="work_name"
+                name="work_name[]"
+                class="form-control"
+              /><br />
+            </div>
+            <div class="form-group">
+              <label for="work_position">Position:</label>
+              <input
+                type="text"
+                id="work_position"
+                name="work_position[]"
+                class="form-control"
+              /><br />
+            </div>
+            <div class="form-group">
+              <label for="work_startDate">Start Date:</label>
+              <input
+                type="date"
+                id="work_startDate"
+                name="work_startDate[]"
+                class="form-control"
+              /><br />
+            </div>
+            <div class="form-group">
+              <label for="work_endDate">End Date:</label>
+              <input
+                type="date"
+                id="work_endDate"
+                name="work_endDate[]"
+                class="form-control"
+              /><br />
+            </div>
+            <div class="form-group">
+              <label for="work_summary">Summary:</label>
+              <textarea
+                id="work_summary"
+                name="work_summary[]"
+                class="form-control"
+              ></textarea
+              ><br />
+            </div>
+
+      
+
+            <h3>Highlights</h3>
+            
+                        <div class="form-group">
+                          <ul class="highlights-list" data-field="work_highlights">
+                            <li>
+                              <input
+                                type="text"
+                                name="work_highlights[0][]"
+                                class="form-control"
+                              />
+                            </li>
+                          </ul>
+                          <button type="button" 
+                          class="highlights"
+                          onclick="addHighlight(this)">
+                            Add Highlight
+                          </button>
+                        </div>
+              <button type="button" onclick="addWorkEntry()" class="add-btn">
+                Add Work Experience
+              </button>
+          </div>
   `;
   container.appendChild(entryDiv);
 }
@@ -242,13 +278,48 @@ function removeEntry(button) {
   button.parentElement.remove();
 }
 
+// function addHighlight(button) {
+//   const highlightsList = button.previousElementSibling;
+//   const newHighlight = document.createElement("li");
+//   const index = highlightsList.querySelectorAll("li").length;
+//   newHighlight.innerHTML = `<input type="text" name="${highlightsList.dataset.field}[0][]" class="form-control">`;
+//   highlightsList.appendChild(newHighlight);
+// }
+
 function addHighlight(button) {
   const highlightsList = button.previousElementSibling;
+
+  // Remove the delete button from the last highlight if it exists
+  const lastHighlight = highlightsList.querySelector("li:last-child button");
+  if (lastHighlight) {
+    lastHighlight.remove();
+  }
+
   const newHighlight = document.createElement("li");
   const index = highlightsList.querySelectorAll("li").length;
-  newHighlight.innerHTML = `<input type="text" name="${highlightsList.dataset.field}[][${index}]">`;
+  newHighlight.innerHTML = `
+    <input type="text" name="${highlightsList.dataset.field}[0][]" class="form-control">
+    <button type="button" onclick="deleteHighlight(this)">Delete</button>
+  `;
   highlightsList.appendChild(newHighlight);
 }
+
+function deleteHighlight(button) {
+  const highlightItem = button.parentElement;
+  highlightItem.remove();
+
+  // If there are other highlights, add the delete button to the last one
+  const highlightsList = document.querySelector(".highlights-list");
+  const lastHighlight = highlightsList.querySelector("li:last-child");
+  if (lastHighlight && !lastHighlight.querySelector("button")) {
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.onclick = () => deleteHighlight(deleteButton);
+    deleteButton.textContent = "Delete";
+    lastHighlight.appendChild(deleteButton);
+  }
+}
+
 var htmlContent = "";
 function submitJson() {
   const form = document.getElementById("submit-form");
@@ -299,8 +370,9 @@ function submitJson() {
       startDate: entry.querySelector('input[name="work_startDate[]"]').value,
       endDate: entry.querySelector('input[name="work_endDate[]"]').value,
       summary: entry.querySelector('textarea[name="work_summary[]"]').value,
+
       highlights: Array.from(
-        entry.querySelectorAll('input[name="work_highlights[][0]"]')
+        document.querySelectorAll('input[name^="work_highlights"]')
       ).map((input) => input.value),
     });
   });
@@ -374,60 +446,55 @@ function submitJson() {
   document.getElementById("json-preview").style.display = "block";
 }
 
-
-
-
-
-
 function showPdf() {
- // Show the loading bar
- const loadingBar = document.getElementById("loading-bar");
- const bar = document.querySelector("#loading-bar .bar");
- loadingBar.style.display = "block";
+  // Show the loading bar
+  const loadingBar = document.getElementById("loading-bar");
+  const bar = document.querySelector("#loading-bar .bar");
+  loadingBar.style.display = "block";
 
- // Start the loading bar animation
- bar.style.width = "0";
- let startTime = Date.now();
+  // Start the loading bar animation
+  bar.style.width = "0";
+  let startTime = Date.now();
 
- fetch("/generate-pdf", {
-   method: "POST",
-   headers: {
-     "Content-Type": "application/json",
-   },
-   body: JSON.stringify({ html: htmlContent }), // Send the saved HTML content
- })
-   .then((response) => response.blob())
-   .then((blob) => {
-     const url = URL.createObjectURL(blob);
-     const pdfFrame = document.getElementById("pdf-frame");
-     pdfFrame.src = url;
-     pdfFrame.style.display = "block";
-     console.log("PDF Preview Updated");
+  fetch("/generate-pdf", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ html: htmlContent }), // Send the saved HTML content
+  })
+    .then((response) => response.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const pdfFrame = document.getElementById("pdf-frame");
+      pdfFrame.src = url;
+      pdfFrame.style.display = "block";
+      console.log("PDF Preview Updated");
 
-     // Calculate the response time
-     let endTime = Date.now();
-     let responseTime = endTime - startTime;
+      // Calculate the response time
+      let endTime = Date.now();
+      let responseTime = endTime - startTime;
 
-     // Set the loading bar to 100% based on the response time
-     bar.style.transition = `width ${responseTime / 1000}s ease`;
-     bar.style.width = "100%";
+      // Set the loading bar to 100% based on the response time
+      bar.style.transition = `width ${responseTime / 1000}s ease`;
+      bar.style.width = "100%";
 
-     // Hide the loading bar after the transition is complete
-     setTimeout(() => {
-       loadingBar.style.display = "none";
-     }, responseTime);
-   })
-   .catch((error) => {
-     console.error("Error:", error);
+      // Hide the loading bar after the transition is complete
+      setTimeout(() => {
+        loadingBar.style.display = "none";
+      }, responseTime);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
 
-     // Hide the loading bar in case of an error
-     loadingBar.style.display = "none";
-   })
+      // Hide the loading bar in case of an error
+      loadingBar.style.display = "none";
+    })
     .finally(() => {
       // Hide the loading bar
       loadingBar.style.display = "none";
     });
-    
+
   // Clear the JSON preview and hide it
   document.getElementById("json-preview").innerText = "";
   document.getElementById("json-preview").style.display = "none";
