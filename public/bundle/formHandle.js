@@ -373,7 +373,6 @@ function submitJson() {
 
       highlights: Array.from(
         document.querySelectorAll('input[name^="work_highlights"]'),
-        document.querySelectorAll('input[name^="work_highlights"]')
       ).map((input) => input.value),
     });
   });
@@ -434,8 +433,6 @@ function submitJson() {
     .then((response) => response.json())
     .then((data) => {
       htmlContent = data.html; // Save the HTML content
-      const previewDiv = document.getElementById("html-preview");
-      previewDiv.innerHTML = htmlContent;
       console.log("HTML Preview Updated");
     })
     .catch((error) => {
