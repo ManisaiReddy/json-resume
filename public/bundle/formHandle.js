@@ -373,6 +373,7 @@ function submitJson() {
 
       highlights: Array.from(
         document.querySelectorAll('input[name^="work_highlights"]')
+        document.querySelectorAll('input[name^="work_highlights"]')
       ).map((input) => input.value),
     });
   });
@@ -433,6 +434,8 @@ function submitJson() {
     .then((response) => response.json())
     .then((data) => {
       htmlContent = data.html; // Save the HTML content
+      const previewDiv = document.getElementById("html-preview");
+      previewDiv.innerHTML = htmlContent;
       console.log("HTML Preview Updated");
     })
     .catch((error) => {
@@ -451,7 +454,14 @@ function showPdf() {
   const loadingBar = document.getElementById("loading-bar");
   const bar = document.querySelector("#loading-bar .bar");
   loadingBar.style.display = "block";
+  // Show the loading bar
+  const loadingBar = document.getElementById("loading-bar");
+  const bar = document.querySelector("#loading-bar .bar");
+  loadingBar.style.display = "block";
 
+  // Start the loading bar animation
+  bar.style.width = "0";
+  let startTime = Date.now();
   // Start the loading bar animation
   bar.style.width = "0";
   let startTime = Date.now();
@@ -470,11 +480,31 @@ function showPdf() {
       pdfFrame.src = url;
       pdfFrame.style.display = "block";
       console.log("PDF Preview Updated");
+  fetch("/generate-pdf", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ html: htmlContent }), // Send the saved HTML content
+  })
+    .then((response) => response.blob())
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      const pdfFrame = document.getElementById("pdf-frame");
+      pdfFrame.src = url;
+      pdfFrame.style.display = "block";
+      console.log("PDF Preview Updated");
 
       // Calculate the response time
       let endTime = Date.now();
       let responseTime = endTime - startTime;
+      // Calculate the response time
+      let endTime = Date.now();
+      let responseTime = endTime - startTime;
 
+      // Set the loading bar to 100% based on the response time
+      bar.style.transition = `width ${responseTime / 1000}s ease`;
+      bar.style.width = "100%";
       // Set the loading bar to 100% based on the response time
       bar.style.transition = `width ${responseTime / 1000}s ease`;
       bar.style.width = "100%";
@@ -486,7 +516,17 @@ function showPdf() {
     })
     .catch((error) => {
       console.error("Error:", error);
+      // Hide the loading bar after the transition is complete
+      setTimeout(() => {
+        loadingBar.style.display = "none";
+      }, responseTime);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
 
+      // Hide the loading bar in case of an error
+      loadingBar.style.display = "none";
+    })
       // Hide the loading bar in case of an error
       loadingBar.style.display = "none";
     })
@@ -494,6 +534,7 @@ function showPdf() {
       // Hide the loading bar
       loadingBar.style.display = "none";
     });
+
 
   // Clear the JSON preview and hide it
   document.getElementById("json-preview").innerText = "";
