@@ -372,7 +372,7 @@ function submitJson() {
       summary: entry.querySelector('textarea[name="work_summary[]"]').value,
 
       highlights: Array.from(
-        document.querySelectorAll('input[name^="work_highlights"]')
+        document.querySelectorAll('input[name^="work_highlights"]'),
         document.querySelectorAll('input[name^="work_highlights"]')
       ).map((input) => input.value),
     });
@@ -454,17 +454,12 @@ function showPdf() {
   const loadingBar = document.getElementById("loading-bar");
   const bar = document.querySelector("#loading-bar .bar");
   loadingBar.style.display = "block";
-  // Show the loading bar
-  const loadingBar = document.getElementById("loading-bar");
-  const bar = document.querySelector("#loading-bar .bar");
-  loadingBar.style.display = "block";
+
 
   // Start the loading bar animation
   bar.style.width = "0";
   let startTime = Date.now();
-  // Start the loading bar animation
-  bar.style.width = "0";
-  let startTime = Date.now();
+
 
   fetch("/generate-pdf", {
     method: "POST",
@@ -498,9 +493,7 @@ function showPdf() {
       // Calculate the response time
       let endTime = Date.now();
       let responseTime = endTime - startTime;
-      // Calculate the response time
-      let endTime = Date.now();
-      let responseTime = endTime - startTime;
+
 
       // Set the loading bar to 100% based on the response time
       bar.style.transition = `width ${responseTime / 1000}s ease`;
