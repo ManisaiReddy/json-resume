@@ -1,10 +1,11 @@
 body {
   display: flex;
   flex-direction: column; /* Change to column for better stacking on small screens */
-  height: 100vh;
+  height: 100vh; /* Ensure body takes full viewport height */
   overflow: hidden;
   background-color: #2e3b4e; /* Dark background color */
   color: #ffffff; /* Text color */
+  margin: 0; /* Remove default margin */
 }
 
 .sidebar {
@@ -78,9 +79,11 @@ body {
   border-color: #6c757d;
   box-shadow: none;
 }
-li{
+
+li {
   list-style: none;
 }
+
 .btn-block {
   margin-top: 20px;
   background-color: #4caf50; /* Submit button background color */
@@ -104,23 +107,21 @@ li{
   border-radius: 10px;
   background-color: orange;
 } */
+
 .pdf-preview {
   position: relative;
   width: 100%;
-  max-height: 100vh; /* Adjust for better fit */
+  max-height: 100%; /* Adjust for better fit */
   margin: 1.5rem 0;
   background: #ffffff; /* PDF preview background color */
   color: #000000; /* PDF preview text color */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  overflow-y:scroll;
+  overflow-y: auto; /* Ensure scrollability */
   padding: 15px;
   border-radius: 8px;
 }
 
-
-
 #loading-bar {
-  
   height: 4px;
   background-color: #f3f3f3;
   z-index: 9999;
@@ -136,20 +137,19 @@ li{
   animation: loading 2s linear infinite;
 }
 
-
-
 @keyframes loading {
   0% { width: 0; }
   100% { width: 100%; }
 }
-
 
 .pdf-preview h3 {
   margin-top: 0;
 }
 
 #json-preview {
-  color: tomato;
+  background-color: #f8f9fa; 
+  padding: 10px; 
+  border: 1px solid #dee2e6;
 }
 
 #generate-pdf {
@@ -170,10 +170,13 @@ li{
   .content {
     width: 30%;
     flex: 1;
+    overflow-y: auto; /* Ensure scrollability */
   }
 
   .pdf-preview {
     width: 45vw;
+    max-height: 100vh; /* Ensure the height does not exceed the viewport height */
     margin: 1.5rem;
+    overflow-y: auto; /* Ensure scrollability */
   }
 }

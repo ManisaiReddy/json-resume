@@ -1,23 +1,21 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
+const puppeteer = require('puppeteer');
 const hbs = require("hbs");
-const pdf = require('html-pdf');
 const handlebars = require('handlebars');
 const handlebarsWax = require('handlebars-wax');
 const moment = require('moment');
 const fs = require("fs");
-const { log } = require("console");
 
 const app = express();
-const port = 8081;
+const port = 8080;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public")));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'src')); // Set directory for template files
-
 
 // Register Handlebars helpers
 handlebars.registerHelper({
@@ -29,12 +27,8 @@ handlebars.registerHelper({
   eq: (a, b) => a === b,
 });
 
-
-
 // Initialize HandlebarsWax with Handlebars
 const Handlebars = handlebarsWax(handlebars);
-
-
 
 // Register partials
 Handlebars.partials(path.join(__dirname, 'src', 'partials', '', '*.hbs'));
@@ -45,7 +39,7 @@ function renderResume(formData) {
   const resumeTemplate = fs.readFileSync(path.join(__dirname, 'src', 'resume.hbs'), 'utf-8');
   const template = Handlebars.compile(resumeTemplate);
   const html = template({
-    style:`<style>${css}</style>`,
+    style: `<style>${css}</style>`,
     resume: formData
   });
   return html;
@@ -62,25 +56,43 @@ app.get("/forms", (req, res) => {
 });
 
 // Endpoint to submit form data and render HTML
-// 
 app.post("/submit-form", (req, res) => {
   const formData = req.body;
   const html = renderResume(formData);
-  console.log(html);
+  console.log(typeof html, html);  // Log HTML for debugging
   res.json({ html });  // Return the HTML content as JSON
 });
 
 // Endpoint to generate PDF resume
-app.post('/generate-pdf', (req, res) => {
+app.post('/generate-pdf', async (req, res) => {
   const { html } = req.body;  // Get HTML from request body
-  pdf.create(html).toBuffer((err, buffer) => {
-    if (err) {
-      return res.status(500).send(err);
-    }
-    res.setHeader('Content-Disposition', 'attachment;filename=resume.pdf');
+
+  try {
+    // Launch a new browser instance
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    const page = await browser.newPage();
+    // Set the content of the page to the HTML content
+    await page.setContent(html, { waitUntil: 'networkidle0' }); // Wait until network is idle
+    // Generate the PDF
+    const buffer = await page.pdf({
+      format: 'A4',
+      printBackground: true
+    });
+
+    // Close the browser
+    await browser.close();
+
+    // Send the PDF as a response
+    res.setHeader('Content-Disposition', 'attachment; filename=resume.pdf');
     res.setHeader('Content-Type', 'application/pdf');
     res.send(buffer);
-  });
+  } catch (err) {
+    console.error('Error generating PDF:', err); // Log the error for debugging
+    res.status(500).send('An error occurred while generating the PDF.');
+  }
 });
 
 app.listen(port, () => {

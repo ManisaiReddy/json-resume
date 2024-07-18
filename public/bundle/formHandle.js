@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", function () {
   showSection("basics-section");
 });
 
+ let workEntryCount = 0; // Track the count of added work entries
+
 function addWorkEntry(button) {
   const container = document.getElementById("work-section");
 
@@ -41,93 +43,85 @@ function addWorkEntry(button) {
   const entryDiv = document.createElement("div");
   entryDiv.classList.add("work-entry");
   entryDiv.innerHTML = `
-   <div class="form-group">
-              <label for="work_name">Company:</label>
-              <input
-                type="text"
-                id="work_name"
-                name="work_name[]"
-                class="form-control"
-              /><br />
-            </div>
-            <div class="form-group">
-              <label for="work_position">Position:</label>
-              <input
-                type="text"
-                id="work_position"
-                name="work_position[]"
-                class="form-control"
-              /><br />
-            </div>
-            <div class="form-group">
-              <label for="work_startDate">Start Date:</label>
-              <input
-                type="date"
-                id="work_startDate"
-                name="work_startDate[]"
-                class="form-control"
-              /><br />
-            </div>
-            <div class="form-group">
-              <label for="work_endDate">End Date:</label>
-              <input
-                type="date"
-                id="work_endDate"
-                name="work_endDate[]"
-                class="form-control"
-              /><br />
-            </div>
-            <div class="form-group">
-              <label for="work_summary">Summary:</label>
-              <textarea
-                id="work_summary"
-                name="work_summary[]"
-                class="form-control"
-              ></textarea
-              ><br />
-            </div>
-
-      
-
-            <h3>Highlights</h3>
-            
-                        <div class="form-group">
-                          <ul class="highlights-list" data-field="work_highlights">
-                            <li>
-                              <input
-                                type="text"
-                                name="work_highlights[0][]"
-                                class="form-control"
-                              />
-                            </li>
-                          </ul>
-                          <button type="button" 
-                          class="highlights"
-                          onclick="addHighlight(this)">
-                            Add Highlight
-                          </button>
-                        </div>
-              <button type="button" onclick="addWorkEntry()" class="add-btn">
-                Add Work Experience
-              </button>
-          </div>
+    <div class="form-group">
+      <label for="work_name">Company:</label>
+      <input
+        type="text"
+        id="work_name"
+        name="work_name[${workEntryCount}]"
+        class="form-control"
+      /><br />
+    </div>
+    <div class="form-group">
+      <label for="work_position">Position:</label>
+      <input
+        type="text"
+        id="work_position"
+        name="work_position[${workEntryCount}]"
+        class="form-control"
+      /><br />
+    </div>
+    <div class="form-group">
+      <label for="work_startDate">Start Date:</label>
+      <input
+        type="date"
+        id="work_startDate"
+        name="work_startDate[${workEntryCount}]"
+        class="form-control"
+      /><br />
+    </div>
+    <div class="form-group">
+      <label for="work_endDate">End Date:</label>
+      <input
+        type="date"
+        id="work_endDate"
+        name="work_endDate[${workEntryCount}]"
+        class="form-control"
+      /><br />
+    </div>
+    <div class="form-group">
+      <label for="work_summary">Summary:</label>
+      <textarea
+        id="work_summary"
+        name="work_summary[${workEntryCount}]"
+        class="form-control"
+      ></textarea><br />
+    </div>
+    <h3>Highlights</h3>
+    <div class="form-group">
+      <ul class="highlights-list" data-field="work_highlights_${workEntryCount}">
+        <li>
+          <input
+            type="text"
+            name="work_highlights[${workEntryCount}][0]"
+            class="form-control"
+          />
+          <button type="button" onclick="removeHighlight(this)" class="remove-highlight">Remove</button>
+        </li>
+      </ul>
+      <button type="button" class="highlights" onclick="addHighlight(this, ${workEntryCount})">
+        Add Highlight
+      </button>
+    </div>
+    <button type="button" onclick="removeEntry(this)" class="remove-entry">Remove Entry</button>
   `;
   container.appendChild(entryDiv);
+  workEntryCount++;
+}
+
+function addHighlight(button, entryIndex) {
+  const ul = button.closest('.work-entry').querySelector(`[data-field="work_highlights_${entryIndex}"]`);
+  const newHighlight = document.createElement("li");
+  newHighlight.innerHTML = `
+    <input type="text" name="work_highlights[${entryIndex}][${ul.children.length}]" class="form-control">
+    <button type="button" onclick="removeHighlight(this)" class="remove-highlight">Remove</button>
+  `;
+  ul.appendChild(newHighlight);
 }
 
 function removeEntry(button) {
   const entryDiv = button.closest(".work-entry");
   entryDiv.remove();
-}
-
-function addHighlight(button) {
-  const ul = button.closest(".work-entry").querySelector(".highlights-list");
-  const newHighlight = document.createElement("li");
-  newHighlight.innerHTML = `
-    <input type="text" name="work_highlights[][${ul.children.length}]" class="form-control">
-    <button type="button" onclick="removeHighlight(this)" class="remove-highlight">Remove</button>
-  `;
-  ul.appendChild(newHighlight);
 }
 
 function removeHighlight(button) {
@@ -174,11 +168,6 @@ function addEducationEntry() {
     container.querySelector('button[onclick= "addEducationEntry()"]')
   );
 }
-
-// // Function to remove an award entry
-// function removeEntry(button) {
-//   button.parentElement.remove();
-// }
 
 // Function to remove a certificate entry
 function removeEntry(button) {
@@ -373,7 +362,6 @@ function submitJson() {
 
       highlights: Array.from(
         document.querySelectorAll('input[name^="work_highlights"]'),
-        document.querySelectorAll('input[name^="work_highlights"]')
       ).map((input) => input.value),
     });
   });
@@ -434,8 +422,6 @@ function submitJson() {
     .then((response) => response.json())
     .then((data) => {
       htmlContent = data.html; // Save the HTML content
-      const previewDiv = document.getElementById("html-preview");
-      previewDiv.innerHTML = htmlContent;
       console.log("HTML Preview Updated");
     })
     .catch((error) => {
@@ -475,20 +461,7 @@ function showPdf() {
       pdfFrame.src = url;
       pdfFrame.style.display = "block";
       console.log("PDF Preview Updated");
-  fetch("/generate-pdf", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ html: htmlContent }), // Send the saved HTML content
-  })
-    .then((response) => response.blob())
-    .then((blob) => {
-      const url = URL.createObjectURL(blob);
-      const pdfFrame = document.getElementById("pdf-frame");
-      pdfFrame.src = url;
-      pdfFrame.style.display = "block";
-      console.log("PDF Preview Updated");
+      
 
       // Calculate the response time
       let endTime = Date.now();
@@ -498,9 +471,7 @@ function showPdf() {
       // Set the loading bar to 100% based on the response time
       bar.style.transition = `width ${responseTime / 1000}s ease`;
       bar.style.width = "100%";
-      // Set the loading bar to 100% based on the response time
-      bar.style.transition = `width ${responseTime / 1000}s ease`;
-      bar.style.width = "100%";
+      
 
       // Hide the loading bar after the transition is complete
       setTimeout(() => {
@@ -509,20 +480,10 @@ function showPdf() {
     })
     .catch((error) => {
       console.error("Error:", error);
-      // Hide the loading bar after the transition is complete
-      setTimeout(() => {
-        loadingBar.style.display = "none";
-      }, responseTime);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-
       // Hide the loading bar in case of an error
       loadingBar.style.display = "none";
     })
       // Hide the loading bar in case of an error
-      loadingBar.style.display = "none";
-    })
     .finally(() => {
       // Hide the loading bar
       loadingBar.style.display = "none";
