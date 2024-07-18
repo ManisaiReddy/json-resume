@@ -27,62 +27,55 @@ document.addEventListener("DOMContentLoaded", function () {
   showSection("basics-section");
 });
 
- let workEntryCount = 0; // Track the count of added work entries
+let workEntryCount = 0;
 
 function addWorkEntry(button) {
   const container = document.getElementById("work-section");
 
-  // Hide the "Add Work Experience" button from the previous form if it's not the initial form
-  if (
-    button &&
-    !button.closest(".work-entry").classList.contains("initial-entry")
-  ) {
-    button.style.display = "none";
-  }
-
+  // Create a new work entry form
   const entryDiv = document.createElement("div");
   entryDiv.classList.add("work-entry");
   entryDiv.innerHTML = `
     <div class="form-group">
-      <label for="work_name">Company:</label>
+      <label for="work_name_${workEntryCount}">Company:</label>
       <input
         type="text"
-        id="work_name"
+        id="work_name_${workEntryCount}"
         name="work_name[${workEntryCount}]"
         class="form-control"
       /><br />
     </div>
     <div class="form-group">
-      <label for="work_position">Position:</label>
+      <label for="work_position_${workEntryCount}">Position:</label>
       <input
         type="text"
-        id="work_position"
+        id="work_position_${workEntryCount}"
         name="work_position[${workEntryCount}]"
         class="form-control"
       /><br />
     </div>
     <div class="form-group">
-      <label for="work_startDate">Start Date:</label>
+      <label for="work_startDate_${workEntryCount}">Start Date:</label>
       <input
         type="date"
-        id="work_startDate"
+        id="work_startDate_${workEntryCount}"
         name="work_startDate[${workEntryCount}]"
         class="form-control"
       /><br />
     </div>
     <div class="form-group">
-      <label for="work_endDate">End Date:</label>
+      <label for="work_endDate_${workEntryCount}">End Date:</label>
       <input
         type="date"
-        id="work_endDate"
+        id="work_endDate_${workEntryCount}"
         name="work_endDate[${workEntryCount}]"
         class="form-control"
       /><br />
     </div>
     <div class="form-group">
-      <label for="work_summary">Summary:</label>
+      <label for="work_summary_${workEntryCount}">Summary:</label>
       <textarea
-        id="work_summary"
+        id="work_summary_${workEntryCount}"
         name="work_summary[${workEntryCount}]"
         class="form-control"
       ></textarea><br />
@@ -104,13 +97,16 @@ function addWorkEntry(button) {
       </button>
     </div>
     <button type="button" onclick="removeEntry(this)" class="remove-entry">Remove Entry</button>
+    <button type="button" class="add-work-btn" onclick="addWorkEntry()">Add Work Experience</button>
   `;
   container.appendChild(entryDiv);
   workEntryCount++;
 }
 
 function addHighlight(button, entryIndex) {
-  const ul = button.closest('.work-entry').querySelector(`[data-field="work_highlights_${entryIndex}"]`);
+  const ul = button
+    .closest(".work-entry")
+    .querySelector(`[data-field="work_highlights_${entryIndex}"]`);
   const newHighlight = document.createElement("li");
   newHighlight.innerHTML = `
     <input type="text" name="work_highlights[${entryIndex}][${ul.children.length}]" class="form-control">
@@ -128,6 +124,10 @@ function removeHighlight(button) {
   const li = button.closest("li");
   li.remove();
 }
+
+// Initialize with one work entry
+
+
 
 // Function to remove an education entry
 function removeEntry(button) {
@@ -309,7 +309,7 @@ function deleteHighlight(button) {
   }
 }
 
-var htmlContent = "";
+let htmlContent = "";
 function submitJson() {
   const form = document.getElementById("submit-form");
   const formData = new FormData(form);
@@ -361,7 +361,7 @@ function submitJson() {
       summary: entry.querySelector('textarea[name="work_summary[]"]').value,
 
       highlights: Array.from(
-        document.querySelectorAll('input[name^="work_highlights"]'),
+        document.querySelectorAll('input[name^="work_highlights"]')
       ).map((input) => input.value),
     });
   });
@@ -441,11 +441,9 @@ function showPdf() {
   const bar = document.querySelector("#loading-bar .bar");
   loadingBar.style.display = "block";
 
-
   // Start the loading bar animation
   bar.style.width = "0";
   let startTime = Date.now();
-
 
   fetch("/generate-pdf", {
     method: "POST",
@@ -461,17 +459,14 @@ function showPdf() {
       pdfFrame.src = url;
       pdfFrame.style.display = "block";
       console.log("PDF Preview Updated");
-      
 
       // Calculate the response time
       let endTime = Date.now();
       let responseTime = endTime - startTime;
 
-
       // Set the loading bar to 100% based on the response time
       bar.style.transition = `width ${responseTime / 1000}s ease`;
       bar.style.width = "100%";
-      
 
       // Hide the loading bar after the transition is complete
       setTimeout(() => {
@@ -483,12 +478,11 @@ function showPdf() {
       // Hide the loading bar in case of an error
       loadingBar.style.display = "none";
     })
-      // Hide the loading bar in case of an error
+    // Hide the loading bar in case of an error
     .finally(() => {
       // Hide the loading bar
       loadingBar.style.display = "none";
     });
-
 
   // Clear the JSON preview and hide it
   document.getElementById("json-preview").innerText = "";
